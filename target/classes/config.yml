@@ -1,0 +1,6 @@
+gui:
+  size: 27
+  slots:
+    custom-nick: 11
+    random-nick: 13
+    remove-nick: 15

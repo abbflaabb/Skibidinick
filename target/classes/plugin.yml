@@ -1,0 +1,28 @@
+name: SkibidiNick
+version: 1.0
+main: com.deyo.skibidinick.skibidinick
+api-version: 1.13
+commands:
+  nick:
+    description: Set a nickname
+    usage: /<command>
+    permission: nicknameplugin.nick
+  unnick:
+    description: Remove your nickname
+    usage: /<command>
+    permission: nicknameplugin.unnick
+  realname:
+    description: Get the real name of a player
+    usage: /<command> <nickname>
+    permission: nicknameplugin.realname
+
+permissions:
+  skibidinick.nick:
+    description: Allows players to set a nickname
+    default: true
+  skibidinick.unnick:
+    description: Allows players to remove their nickname
+    default: true
+  skibidinick.realname:
+    description: Allows players to see the real name of others
+    default: op
