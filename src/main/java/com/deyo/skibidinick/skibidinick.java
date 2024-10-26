@@ -139,21 +139,25 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
                 if (!player.hasPermission("skibidinick.nick")) {
                     player.sendMessage(getMessage("no-permission"));
                     return true;
+                }else {
+                    openNickGUI(player);
                 }
-                openNickGUI(player);
+
                 return true;
             case "unnick":
                 if (!player.hasPermission("skibidinick.unnick")) {
                     player.sendMessage(getMessage("no-permission"));
                     return true;
+                }else {
+                    return handleUnnickCommand(player);
                 }
-                return handleUnnickCommand(player);
             case "realname":
                 if (!player.hasPermission("skibidinick.realname")) {
                     player.sendMessage(getMessage("no-permission"));
                     return true;
+                }else {
+                    return handleRealnameCommand(player, args);
                 }
-                return handleRealnameCommand(player, args);
             default:
                 return false;
         }
