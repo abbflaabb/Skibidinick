@@ -139,25 +139,20 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
                 if (!player.hasPermission("skibidinick.nick")) {
                     player.sendMessage(getMessage("no-permission"));
                     return true;
-                }else {
-                    openNickGUI(player);
                 }
-
-                return true;
+                openNickGUI(player);
             case "unnick":
                 if (!player.hasPermission("skibidinick.unnick")) {
                     player.sendMessage(getMessage("no-permission"));
                     return true;
-                }else {
-                    return handleUnnickCommand(player);
                 }
+                return handleUnnickCommand(player);
             case "realname":
                 if (!player.hasPermission("skibidinick.realname")) {
                     player.sendMessage(getMessage("no-permission"));
                     return true;
-                }else {
-                    return handleRealnameCommand(player, args);
                 }
+                return handleRealnameCommand(player, args);
             default:
                 return false;
         }
@@ -281,13 +276,30 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
         if (clickedItem.getItemMeta().getDisplayName().equals(getMessage("gui.custom-nick"))) {
+            if (!player.hasPermission("skibidinick.nick")) {
+                player.sendMessage(getMessage("no-permission"));
+                player.closeInventory();
+                return;
+            }
             player.closeInventory();
-            player.sendMessage(getMessage("custom-nick-prompt"));
             awaitingCustomNick.put(player.getUniqueId(), true);
+            player.sendMessage(getMessage("enter-custom-nick"));
         } else if (clickedItem.getItemMeta().getDisplayName().equals(getMessage("gui.random-nick"))) {
+            if (!player.hasPermission("skibidinick.nick")) {
+                player.sendMessage(getMessage("no-permission"));
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
             String randomNick = generateRandomNick();
             setNicknameAndSkin(player, randomNick);
         } else if (clickedItem.getItemMeta().getDisplayName().equals(getMessage("gui.remove-nick"))) {
+            if (!player.hasPermission("skibidinick.unnick")) {
+                player.sendMessage(getMessage("no-permission"));
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
             handleUnnickCommand(player);
         }
     }
