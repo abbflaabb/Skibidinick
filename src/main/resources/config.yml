@@ -1,6 +1,26 @@
+# Skibidinick Configuration
+# Plugin by deyo
+
+# Allow entity disguises (monsters, animals, etc.)
+allow-entity-disguises: true
+
+# BungeeCord Configuration
+bungeecord:
+  # Enable BungeeCord mode for cross-server nickname synchronization
+  enabled: false
+  # Timeout for nickname availability checks (in seconds)
+  check-timeout: 5
+
+# GUI Configuration
 gui:
+  title: "&6&lNickname Menu"
   size: 27
   slots:
     custom-nick: 11
     random-nick: 13
     remove-nick: 15
+
+# Database settings
+database:
+  # Auto-save interval in minutes (0 = disabled)
+  auto-save-interval: 5
