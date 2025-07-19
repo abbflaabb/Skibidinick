@@ -3,19 +3,15 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.deyo</groupId>
     <artifactId>skibidinick</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-
     <name>Skibidinick</name>
-
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
     <build>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
@@ -38,6 +34,14 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.github.javafaker</pattern>
+                                    <shadedPattern>com.deyo.skibidinick.libs.javafaker</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -49,7 +53,6 @@
             </resource>
         </resources>
     </build>
-
     <repositories>
         <repository>
             <id>placeholderapi</id>
@@ -67,8 +70,12 @@
             <id>gravemc-repo</id>
             <url>https://repo.gravemc.net/releases/</url>
         </repository>
+        <!-- BungeeCord repository -->
+        <repository>
+            <id>bungeecord-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
     </repositories>
-
     <dependencies>
         <dependency>
             <groupId>dev.iiahmed</groupId>
@@ -92,6 +99,20 @@
             <groupId>com.github.javafaker</groupId>
             <artifactId>javafaker</artifactId>
             <version>1.0.2</version>
+        </dependency>
+        <!-- BungeeCord API -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-api</artifactId>
+            <version>1.20-R0.2-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- BungeeCord Chat API for messaging -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
+            <version>1.20-R0.2</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
