@@ -29,10 +29,11 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import org.bukkit.ChatColor;
 import java.util.Arrays;
+import com.deyo.skibidinick.utils.BungeeCordUtil;
 
 public class skibidinick extends JavaPlugin implements Listener, CommandExecutor {
 
-    private final DisguiseProvider provider = DisguiseManager.getProvider();
+    private final DisguiseProvider provider = DisguiseProvider.getProvider();
     private Pattern namePattern;
     private Map<UUID, Boolean> awaitingCustomNick = new HashMap<>();
     private Faker faker;
@@ -41,10 +42,16 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
     private YamlConfiguration database;
     private YamlConfiguration messages;
     private Map<String, Player> nickedPlayers = new HashMap<>();
+    private BungeeCordUtil bungeeCordUtil;
+    private boolean bungeeCordMode;
 
     @Override
     public void onEnable() {
         getLogger().info("Skibidinick V1 nick plugin by deyo has been enabled!");
+        
+        // Check if BungeeCord mode is enabled
+        bungeeCordMode = getConfig().getBoolean("bungeecord.enabled", false);
+        
         boolean allowEntities = getConfig().getBoolean("allow-entity-disguises", true);
         DisguiseManager.initialize(this, allowEntities);
         provider.allowOverrideChat(true);
@@ -64,6 +71,12 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
         this.usedNames = new HashSet<>(database.getStringList("used_names"));
         loadConfig();
         loadMessages();
+        
+        // Initialize BungeeCord support if enabled
+        if (bungeeCordMode) {
+            bungeeCordUtil = new BungeeCordUtil(this);
+            getLogger().info("BungeeCord mode enabled - nicknames will be synchronized across servers!");
+        }
     }
 
     private void loadConfig() {
@@ -79,11 +92,11 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
         messages = YamlConfiguration.loadConfiguration(messagesFile);
     }
 
-    private String getMessage(String key) {
+    public String getMessage(String key) {
         return ChatColor.translateAlternateColorCodes('&', messages.getString(key, "Message not found: " + key));
     }
 
-    private String getMessage(String key, Map<String, String> replacements) {
+    public String getMessage(String key, Map<String, String> replacements) {
         String message = ChatColor.translateAlternateColorCodes('&', messages.getString(key, "Message not found: " + key));
         for (Map.Entry<String, String> entry : replacements.entrySet()) {
             message = message.replace("{" + entry.getKey() + "}", entry.getValue());
@@ -121,8 +134,18 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
         }
     }
 
-    private boolean isNameAvailable(String name) {
+    public boolean isNameAvailable(String name) {
         return !usedNames.contains(name.toLowerCase());
+    }
+    
+    public void markNameAsUsed(String name) {
+        usedNames.add(name.toLowerCase());
+        saveDatabase();
+    }
+    
+    public void markNameAsAvailable(String name) {
+        usedNames.remove(name.toLowerCase());
+        saveDatabase();
     }
 
     @Override
@@ -141,6 +164,7 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
                     return true;
                 }
                 openNickGUI(player);
+                return true;
             case "unnick":
                 if (!player.hasPermission("skibidinick.unnick")) {
                     player.sendMessage(getMessage("no-permission"));
@@ -171,11 +195,24 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
             return true;
         }
 
+        // Use BungeeCord checking if enabled
+        if (bungeeCordMode && bungeeCordUtil != null) {
+            bungeeCordUtil.checkNicknameAvailable(player, newName);
+            player.sendMessage(getMessage("checking-nickname-availability"));
+            return true;
+        }
+
+        // Local check only
         if (!isNameAvailable(newName)) {
             player.sendMessage(getMessage("name-unavailable"));
             return true;
         }
 
+        setNicknameForPlayer(player, newName);
+        return true;
+    }
+    
+    public void setNicknameForPlayer(Player player, String newName) {
         Disguise disguise = Disguise.builder()
                 .setName(newName)
                 .build();
@@ -187,6 +224,14 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
                 replacements.put("nickname", newName);
                 player.sendMessage(getMessage("nick-set", replacements));
                 nickedPlayers.put(newName.toLowerCase(), player);
+                
+                // Mark as used locally
+                markNameAsUsed(newName);
+                
+                // Broadcast to other servers if BungeeCord is enabled
+                if (bungeeCordMode && bungeeCordUtil != null) {
+                    bungeeCordUtil.broadcastNicknameTaken(newName);
+                }
                 break;
             case FAIL_NAME_ALREADY_ONLINE:
                 player.sendMessage(getMessage("name-already-online"));
@@ -200,16 +245,31 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
                 errorReplacements.put("reason", response.toString());
                 player.sendMessage(getMessage("disguise-unsuccessful", errorReplacements));
         }
-        return true;
     }
 
     private boolean handleUnnickCommand(Player player) {
+        String currentNick = null;
+        if (provider.isDisguised(player)) {
+            currentNick = provider.getInfo(player).getName();
+        }
+        
         UndisguiseResponse response = provider.undisguise(player);
         if (response == UndisguiseResponse.SUCCESS) {
             player.setDisplayName(player.getName());
             player.sendMessage(getMessage("nick-removed"));
-            nickedPlayers.remove(provider.getInfo(player).getName().toLowerCase());
-        }else if (response == UndisguiseResponse.FAIL_ALREADY_UNDISGUISED) {
+            
+            if (currentNick != null) {
+                nickedPlayers.remove(currentNick.toLowerCase());
+                
+                // Mark as available locally
+                markNameAsAvailable(currentNick);
+                
+                // Broadcast to other servers if BungeeCord is enabled
+                if (bungeeCordMode && bungeeCordUtil != null) {
+                    bungeeCordUtil.broadcastNicknameFreed(currentNick);
+                }
+            }
+        } else if (response == UndisguiseResponse.FAIL_ALREADY_UNDISGUISED) {
             player.sendMessage(getMessage("already-undisguised"));
         } else {
             Map<String, String> errorReplacements = new HashMap<>();
@@ -217,7 +277,6 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
             player.sendMessage(getMessage("failed-remove-nickname", errorReplacements));
         }
         return true;
-        
     }
 
     private boolean handleRealnameCommand(Player player, String[] args) {
@@ -311,43 +370,23 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
             event.setCancelled(true);
             final String nickname = event.getMessage();
 
-            Bukkit.getScheduler().runTask(this, () -> setNicknameAndSkin(player, nickname));
+            Bukkit.getScheduler().runTask(this, () -> {
+                if (bungeeCordMode && bungeeCordUtil != null) {
+                    bungeeCordUtil.checkNicknameAvailable(player, nickname);
+                    player.sendMessage(getMessage("checking-nickname-availability"));
+                } else {
+                    setNicknameAndSkin(player, nickname);
+                }
+            });
         }
     }
 
     private void setNicknameAndSkin(Player player, String nickname) {
-        if (!isNameAvailable(nickname)) {
-            player.sendMessage(getMessage("name-unavailable"));
+        if (!this.namePattern.matcher(nickname).matches()) {
+            player.sendMessage(getMessage("invalid-nickname-format"));
             return;
         }
 
-        Disguise disguise = Disguise.builder()
-                .setName(nickname)
-                .build();
-        DisguiseResponse response = provider.disguise(player, disguise);
-        if (response == DisguiseResponse.SUCCESS) {
-            player.setDisplayName(nickname);
-            Map<String, String> replacements = new HashMap<>();
-            replacements.put("nickname", nickname);
-            player.sendMessage(getMessage("nick-set", replacements));
-            nickedPlayers.put(nickname.toLowerCase(), player);
-        } else {
-            Map<String, String> errorReplacements = new HashMap<>();
-            errorReplacements.put("reason", response.toString());
-            player.sendMessage(getMessage("disguise-unsuccessful", errorReplacements));
-        }
-    }
-
-    private String generateRandomNick() {
-        String randomNick;
-        do {
-            randomNick = faker.superhero().name().replaceAll("\\s+", "");
-        } while (randomNick.length() > 16);
-        return randomNick;
-    }
-
-    @Override
-    public void onDisable() {
-        getLogger().info("Skibidinick V1 nick plugin by deyo has been disabled!");
-    }
-}
+        if (!isNameAvailable(nickname)) {
+            player.sendMessage(getMessage("name-unavailable"));
+            return;
