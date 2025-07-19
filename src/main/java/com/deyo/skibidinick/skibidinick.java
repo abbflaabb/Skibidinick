@@ -390,3 +390,58 @@ public class skibidinick extends JavaPlugin implements Listener, CommandExecutor
         if (!isNameAvailable(nickname)) {
             player.sendMessage(getMessage("name-unavailable"));
             return;
+        }
+
+        Disguise disguise = Disguise.builder()
+                .setName(nickname)
+                .build();
+        DisguiseResponse response = provider.disguise(player, disguise);
+        if (response == DisguiseResponse.SUCCESS) {
+            player.setDisplayName(nickname);
+            Map<String, String> replacements = new HashMap<>();
+            replacements.put("nickname", nickname);
+            player.sendMessage(getMessage("nick-set", replacements));
+            nickedPlayers.put(nickname.toLowerCase(), player);
+            
+            // Mark as used locally
+            markNameAsUsed(nickname);
+            
+            // Broadcast to other servers if BungeeCord is enabled
+            if (bungeeCordMode && bungeeCordUtil != null) {
+                bungeeCordUtil.broadcastNicknameTaken(nickname);
+            }
+        } else {
+            Map<String, String> errorReplacements = new HashMap<>();
+            errorReplacements.put("reason", response.toString());
+            player.sendMessage(getMessage("disguise-unsuccessful", errorReplacements));
+        }
+    }
+
+    private String generateRandomNick() {
+        String randomNick;
+        int attempts = 0;
+        do {
+            randomNick = faker.superhero().name().replaceAll("\\s+", "");
+            attempts++;
+            if (attempts > 50) {
+                // Fallback to ensure we don't get stuck in an infinite loop
+                randomNick = "Player" + (int)(Math.random() * 10000);
+                break;
+            }
+        } while (randomNick.length() > 16 || !isNameAvailable(randomNick));
+        return randomNick;
+    }
+
+    @Override
+    public void onDisable() {
+        getLogger().info("Skibidinick V1 nick plugin by deyo has been disabled!");
+        
+        // Cleanup BungeeCord utilities
+        if (bungeeCordUtil != null) {
+            bungeeCordUtil.cleanup();
+        }
+        
+        // Save database one final time
+        saveDatabase();
+    }
+}
