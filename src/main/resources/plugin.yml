@@ -1,28 +1,54 @@
-name: SkibidiNick
-version: 1.0
+name: Skibidinick
+version: '1.0'
 main: com.deyo.skibidinick.skibidinick
 api-version: 1.13
+authors: [deyo]
+description: Advanced nickname plugin with disguise support and BungeeCord compatibility
+website: https://github.com/deyo/skibidinick
+
+softdepend: [PlaceholderAPI]
+
 commands:
   nick:
-    description: Set a nickname
-    usage: /<command>
+    description: Open nickname GUI or set nickname
+    usage: /nick [nickname]
     permission: skibidinick.nick
+    aliases: [nickname, setnick]
+  
   unnick:
     description: Remove your nickname
-    usage: /<command>
+    usage: /unnick
     permission: skibidinick.unnick
+    aliases: [removenick, clearnick]
+  
   realname:
-    description: Get the real name of a player
-    usage: /<command> <nickname>
+    description: Get the real name of a nicknamed player
+    usage: /realname <nickname>
     permission: skibidinick.realname
+    aliases: [whois]
 
 permissions:
+  skibidinick.*:
+    description: Gives access to all Skibidinick commands
+    children:
+      skibidinick.nick: true
+      skibidinick.unnick: true
+      skibidinick.realname: true
+      skibidinick.admin: true
+    default: op
+  
   skibidinick.nick:
-    description: Allows players to use the nick command and GUI
-    default: op
+    description: Allows setting nicknames
+    default: true
+  
   skibidinick.unnick:
-    description: Allows players to remove their nickname
-    default: op
+    description: Allows removing nicknames
+    default: true
+  
   skibidinick.realname:
-    description: Allows players to check the real name of nicked players
+    description: Allows checking real names
+    default: true
+  
+  skibidinick.admin:
+    description: Administrative permissions
     default: op
