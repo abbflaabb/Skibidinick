@@ -1,26 +1,44 @@
-player-only-command: "&cThis command can only be used by players."
-no-permission: "&cYou don't have permission to use this command."
+# Skibidinick Messages
+# Use & for color codes
+# Available placeholders: {nickname}, {realname}, {oldnick}, {newnick}, {reason}
+
+# General Messages
+player-only-command: "&cThis command can only be used by players!"
+no-permission: "&cYou don't have permission to use this command!"
+
+# Nickname Messages
 nick-usage: "&cUsage: /nick <nickname>"
-invalid-nickname-format: "&cInvalid nickname format. Use only letters, numbers, and underscores (3-16 characters)."
-name-unavailable: "&cThis nickname is already in use."
-nick-set: "&aYour nickname has been set to {nickname}."
-name-already-online: "&cA player with this name is already online."
-disguise-unsuccessful: "&cFailed to set nickname. Reason: {reason}"
-nick-removed: "&aYour nickname has been removed."
-already-undisguised: "&cYou are not currently nicked."
-failed-remove-nickname: "&cFailed to remove nickname. Reason: {reason}"
+nick-set: "&aYour nickname has been set to &f{nickname}&a!"
+nick-removed: "&aYour nickname has been removed!"
+nick-changed-on-join: "&eYour nickname was changed from &f{oldnick}&e to &f{newnick}&e because another player joined with that name!"
+
+# Validation Messages
+invalid-nickname-format: "&cNickname must be 3-16 characters and contain only letters, numbers, and underscores!"
+name-unavailable: "&cThat nickname is already taken!"
+name-already-online: "&cA player with that name is already online!"
+already-undisguised: "&cYou don't have a nickname set!"
+
+# BungeeCord Messages
+checking-nickname-availability: "&eChecking nickname availability across all servers..."
+
+# Error Messages
+disguise-unsuccessful: "&cFailed to set nickname: {reason}"
+failed-remove-nickname: "&cFailed to remove nickname: {reason}"
+
+# Realname Command
 realname-usage: "&cUsage: /realname <nickname>"
-realname-not-found: "&cPlayer with that nickname not found."
-realname-result: "&aThe real name of {nickname} is {realname}."
+realname-not-found: "&cPlayer not found!"
+realname-result: "&a{nickname}'s real name is &f{realname}&a!"
 
+# GUI Messages
 gui:
-  title: "&6Nick Menu"
-  custom-nick: "&aCustom Nickname"
-  custom-nick-lore: "Click to set a custom nickname"
-  random-nick: "&aRandom Nickname"
-  random-nick-lore: "Click to get a random nickname"
-  remove-nick: "&cRemove Nickname"
-  remove-nick-lore: "Click to remove your current nickname"
+  title: "&6&lNickname Menu"
+  custom-nick: "&e&lCustom Nickname"
+  custom-nick-lore: "&7Click to set a custom nickname\n&7You will be prompted to type it in chat"
+  random-nick: "&a&lRandom Nickname"
+  random-nick-lore: "&7Click to get a random nickname\n&7Generated automatically"
+  remove-nick: "&c&lRemove Nickname"
+  remove-nick-lore: "&7Click to remove your current nickname\n&7Return to your original name"
 
-enter-custom-nick: "&aPlease enter your desired nickname in the chat."
-nick-changed-on-join: "&aYour nickname has been changed from {oldnick} to {newnick} due to a name conflict."
+# Chat Messages
+enter-custom-nick: "&eType your desired nickname in chat:"
